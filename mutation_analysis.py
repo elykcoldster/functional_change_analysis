@@ -9,6 +9,7 @@ if __name__=="__main__":
 	seq_length = int(sys.argv[4])
 	
 	threshold = 10
+	rnd = 1
 
 	orig = {}
 
@@ -35,10 +36,12 @@ if __name__=="__main__":
 		seq_num = int(chrinfo[1]) - 1
 		seq_num = seq_num - motif_center
 		
-		if seq_num in total_seqs:
-			total_seqs[seq_num] += 1
+		tsbin = np.round(seq_num / rnd) * rnd
+
+		if tsbin in total_seqs:
+			total_seqs[tsbin] += 1
 		else:
-			total_seqs[seq_num] = 1
+			total_seqs[tsbin] = 1
 		score = float(line.split()[1])
 		"""if score > orig[chr_pos] + threshold or score < orig[chr_pos] - threshold:
 			seqs[seq_num] += 1"""
@@ -49,17 +52,16 @@ if __name__=="__main__":
 				orig[chr_pos]['data'][seq_num] = 1
 
 	seqs = {}
-	rnd = 20
 	for k, v in orig.items():
 		data = v['data']
 		for kd, vd in data.items():
 			rkd = np.round(kd/rnd)*rnd
 			if rkd in seqs:
-				seqs[rkd] += vd / total_seqs[kd]
+				seqs[rkd] += vd
 			else:
-				seqs[rkd] = vd / total_seqs[kd]
+				seqs[rkd] = vd
 	for k, v in seqs.items():
-		plt.bar(k, v, width=rnd)
+		plt.bar(k, v/total_seqs[k], width=rnd)
 	plt.title('Functional Change Rate at Positions Relative to Motif Center ($N$={0})'.format(num_muts))
 	plt.xlabel('Relative Nucleotide Position')
 	plt.ylabel('Functional Change Rate')
