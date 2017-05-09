@@ -7,10 +7,10 @@ from keras.layers.convolutional import Conv1D
 
 if __name__ == '__main__':
 	seq_length = 280
-	pos_file = open('cnn_pos_training.fa', 'r')
+	pos_file = open('cnn_pos_training_1.fa', 'r')
 	neg_file = open('cnn_neg_training.fa', 'r')
 
-	pos_test_file = open('cnn_pos_test.fa', 'r')
+	pos_test_file = open('cnn_pos_test_1.fa', 'r')
 	neg_test_file = open('cnn_neg_test.fa', 'r')
 
 	pos_seqs = []
@@ -92,3 +92,46 @@ if __name__ == '__main__':
 				acc += 1
 	acc = acc / (len(pos_test_seqs) + len(neg_test_seqs))
 	print('Test accuracy:', acc)
+
+	print('Predicting motif data...')
+	motif_file = open('../jund_motif_seqs.fa', 'r')
+	motif_seqs = []
+	motif_chr = []
+	for i, line in enumerate(motif_file):
+		if i % 2 == 0:
+			motif_chr.append(line[:-1])
+		if i % 2 == 1:
+			numseq = seq2num(line, seq_length, flat=False)
+			if numseq.shape[0] == seq_length:
+				motif_seqs.append(numseq)
+	motif_seqs = np.asarray(motif_seqs)
+
+	motif_predictions = model.predict(motif_seqs)
+	motif_out = open('jund_motif_seqs_cnn.csv', 'w')
+
+	motif_acc = 0
+	for i,p in enumerate(motif_predictions):
+		motif_out.write(motif_chr[i] + '\t' + str(p[0]) + '\n')
+		if p[0] > 0.5:
+			motif_acc += 1
+	motif_acc /= len(motif_predictions)
+	print('Motif prediction accuracy: ', motif_acc)
+	
+	print('Predicting mutation data...')
+	mut_file = open('../jund_motif_mut_seqs.fa', 'r')
+	mut_seqs = []
+	mut_chr = []
+	for i, line in enumerate(mut_file):
+		if i % 2 == 0:
+			mut_chr.append(line[:-1])
+		if i % 2 == 1:
+			numseq = seq2num(line, seq_length, flat=False)
+			if numseq.shape[0] == seq_length:
+				mut_seqs.append(numseq)
+	mut_seqs = np.asarray(mut_seqs)
+
+	mut_predictions = model.predict(mut_seqs)
+	mut_out = open('jund_motif_mut_seqs_cnn.csv', 'w')
+
+	for i,p in enumerate(mut_predictions):
+		mut_out.write(mut_chr[i] + '\t' + str(p[0]) + '\n')
