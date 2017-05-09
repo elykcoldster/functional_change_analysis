@@ -1,0 +1,6 @@
+*.txt
+*.out
+*.fa
+*.csv
+*.png
+gkmsvm/*
